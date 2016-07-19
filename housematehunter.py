@@ -6,6 +6,7 @@ import re
 from friends import friends
 from multiprocessing.dummy import Pool as ThreadPool
 
+'''cleans mac addresses by re-adding zeros'''
 def mac_clean(mac):
 	parts = mac.split(":")
 	mac_final = ""
@@ -15,9 +16,13 @@ def mac_clean(mac):
 		mac_final += part + ":"
 	return mac_final[:-1]
 
+'''calls ifconfig and returns the text response'''
 def ifconfig_response():
 	return subprocess.check_output(['ifconfig'], shell=True)
 
+'''	finds the broadcast internet ip and sends out a single broadcast ping 
+	(currently silently). Because not a lot of machines respond to broadcast
+	pings, there are other slower ways that fewer devices ignore'''
 def broadcast_ping(ifconfig_res):
 	#starting with a broadcast ping
 	[broadcast_ip] = re.findall( r'broadcast [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
@@ -31,7 +36,10 @@ def broadcast_ping(ifconfig_res):
 
 	broadcast_ip = broadcast_ip.split()[1]
 
+	## silent response, calls the ping with no terminal output because #annoying
 	response = subprocess.check_output(["ping -c 1 " + broadcast_ip], shell=True)
+	
+	## Binary response, prints to the terminal, if it's failing you can enable it
 	# response = os.system("ping -c 1 " + broadcast_ip)
 	# print response == response1
 
@@ -40,15 +48,16 @@ def broadcast_ping(ifconfig_res):
 	# else:
 	return broadcast_ip
 
+'''  '''
 def class_license(ifconfig_res):
 	# print ifconfig_res
 	internet = re.findall( r'netmask (.*) broadcast', ifconfig_res)
 	if len(internet) == 1:
-		if 'ffffff' in internet[0]:
+		if 'ffffff' or "255.255.255" in internet[0]:
 			return "C"
-		elif 'ffff' in internet[0]:
+		elif 'ffff' or "255.255" in internet[0]:
 			return "B"
-		elif 'ff' in internet[0]:
+		elif 'ff' or "255." in internet[0]:
 			return "A"
 	print "Class License not extracted"
 	return None
@@ -112,7 +121,7 @@ def main():
 	class_lic = class_license(ifconfig_res)
 
 	broadcast_ip = broadcast_ping(ifconfig_res)
-	class_lic = "C"
+	print class_lic
 	# individual_ping_network(broadcast_ip, class_lic)
 	arp_lookup()
 
