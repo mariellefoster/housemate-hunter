@@ -131,6 +131,8 @@ def device_types(network_dict):
     for mac in network_dict:
         if mac[:8] in mac_addresses:
             print mac +'\t'+ network_dict[mac] +'\t'+ mac_addresses[mac[:8]]
+        else:
+            print "DON'T KNOW", mac
 
 
 def main():
