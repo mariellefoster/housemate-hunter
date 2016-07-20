@@ -29,6 +29,7 @@ def broadcast_ping(ifconfig_res):
     [broadcast_ip] = re.findall( r'broadcast [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
 
     internet_ip = re.findall( r'inet [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
+    print broadcast_ip
     
     if len(internet_ip) >= 2:
         internet_ip = internet_ip[1].split()[1]
@@ -49,7 +50,8 @@ def broadcast_ping(ifconfig_res):
     # else:
     return broadcast_ip
 
-'''figure out which class license you're on: netmask inet 10.0.17.185 netmask 0xffff0000 four f's means class B, two f's means class A, six f's class C'''
+''' figure out which class license you're on: netmask inet 10.0.17.185 netmask 
+    0xffff0000 four f's means class B, two f's means class A, six f's class C'''
 def class_license(ifconfig_res):
     # print ifconfig_res
     internet = re.findall( r'netmask (.*) broadcast', ifconfig_res)
@@ -63,8 +65,9 @@ def class_license(ifconfig_res):
     print "Class License not extracted"
     return None
 
-#individual pings
-#find all ip's in your subnet, arp them (so then they'll be added to your arp table)
+'''find all ip's in your subnet (only works for class B and C because 
+    you don't want arp 8 million addresses), arping's them so then they'll 
+        be added to your arp table'''
 def individual_ping_network(broadcast_ip, class_lic):
     ip_parts = broadcast_ip.split(".")
     print ip_parts
@@ -86,11 +89,13 @@ def individual_ping_network(broadcast_ip, class_lic):
     pool.close()
     pool.join()
 
+''' Calls to the system a single ping directed at a specific ip address '''
 def ping_thread(ip):
     ping = os.system("arping -c 1 " + ip)
 
+''' look up arp table, find all mac addresses, put them in a dictionary 
+    with the IP addresses as keys '''
 def arp_lookup():
-    #look up arp table, find all mac addresses
     arp_response = subprocess.check_output(['arp -an'], shell=True)
     network_machines = arp_response.split("\n")
 
@@ -107,21 +112,25 @@ def arp_lookup():
             mac = mac_clean(mac)        
             # print ip, mac
             network_dict[mac] = ip
+    return network_dict
 
+''' looks up your known mac addresses and prints out who is home, their mac address
+    and their current ip address'''
+def friends_home(network_dict):
     #see who's home
     print "~~~~~~~~~Friends who are home~~~~~~~~~~~~"
     for friend in friends:
         friend = mac_clean(friend)
         if friend in network_dict:
-            print friends[friend] +'\t'+ friend +'\t'+ network_dict[friend]
+            print friend +'\t'+ network_dict[friend] +'\t'+  friends[friend]
 
-    return network_dict
-
+''' prints the contents of your arp table and what maker/manufacturer is associated
+    with their mac address'''
 def device_types(network_dict):
     print "~~~~~~~~~Device types on your network~~~~~~~~~~~~"
     for mac in network_dict:
         if mac[:8] in mac_addresses:
-            print mac +'\t'+ mac_addresses[mac[:8]]
+            print mac +'\t'+ network_dict[mac] +'\t'+ mac_addresses[mac[:8]]
 
 
 def main():
@@ -130,13 +139,15 @@ def main():
     class_lic = class_license(ifconfig_res)
 
     broadcast_ip = broadcast_ping(ifconfig_res)
-    print class_lic
+
     # individual_ping_network(broadcast_ip, class_lic)
+
     network_dict = arp_lookup()
+    
+    friends_home(network_dict)
     device_types(network_dict)
 
     ##Ideas
-    # identify machines/types based on their mac addresses
 
 if __name__ == '__main__':
     main()
@@ -162,7 +173,6 @@ if __name__ == '__main__':
 
 # hostname = "google.com" #example
 # my_ip = "10.0.255.255"
-# marielle_mac = "b8:e8:56:38:74:2"
 # ip = os.system("ifconfig | grep broadcast")
 # response = os.system("arp -a")
 
