@@ -134,6 +134,10 @@ def device_types(network_dict):
         else:
             print "DON'T KNOW", mac
 
+'''nmaps whatever subnet (last octect) you're on so you find all devices on your net'''
+def nmap_subnet():
+    pass
+
 
 def main():
     ifconfig_res = ifconfig_response()
