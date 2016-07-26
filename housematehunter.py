@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# By Marielle Foster, July 2016
+# Inspiration from Paul Fenwick
 
 import os
 import subprocess
@@ -6,6 +8,7 @@ import re
 from friends import friends
 from mac_add import mac_addresses
 from multiprocessing.dummy import Pool as ThreadPool
+import argparse
 
 '''cleans mac addresses by re-adding zeros'''
 def mac_clean(mac):
@@ -29,7 +32,6 @@ def broadcast_ping(ifconfig_res):
     [broadcast_ip] = re.findall( r'broadcast [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
 
     internet_ip = re.findall( r'inet [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
-    print broadcast_ip
     
     if len(internet_ip) >= 2:
         internet_ip = internet_ip[1].split()[1]
@@ -48,12 +50,11 @@ def broadcast_ping(ifconfig_res):
     # if response != 0:
     #   print "Broadcast ping failed"
     # else:
-    return broadcast_ip
+    return (broadcast_ip, internet_ip)
 
 ''' figure out which class license you're on: netmask inet 10.0.17.185 netmask 
     0xffff0000 four f's means class B, two f's means class A, six f's class C'''
 def class_license(ifconfig_res):
-    # print ifconfig_res
     internet = re.findall( r'netmask (.*) broadcast', ifconfig_res)
     if len(internet) == 1:
         if 'ffffff' in internet[0] or "255.255.255" in internet[0]: #or 255.255.255?
@@ -110,7 +111,6 @@ def arp_lookup():
             [ip] = ip
             [mac] = mac
             mac = mac_clean(mac)        
-            # print ip, mac
             network_dict[mac] = ip
     return network_dict
 
@@ -135,18 +135,32 @@ def device_types(network_dict):
             print "DON'T KNOW", mac
 
 '''nmaps whatever subnet (last octect) you're on so you find all devices on your net'''
-def nmap_subnet():
-    pass
+def nmap_subnet(internet_ip):
+    internet_ip = internet_ip.split(".")
+    broad_ip = internet_ip[0]+"."+internet_ip[1]+"."+internet_ip[2]+".*"
+    os.system("nmap -F " + broad_ip)
+    
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Looks over your subnet, informs you of the computers you have interacted with recently and/or those which have responded to the program's broadcast ping.")
+    parser.add_argument('-p', '--pingall', action='store_true', help="pings all devices on your subnet")
+    parser.add_argument('-n', '--nmapsubnet', action='store_true', help="nmaps all ip's with the same last octect of your current ip address")
+    args = parser.parse_args()
+
     ifconfig_res = ifconfig_response()
 
     class_lic = class_license(ifconfig_res)
 
-    broadcast_ip = broadcast_ping(ifconfig_res)
+    (broadcast_ip, internet_ip) = broadcast_ping(ifconfig_res)
 
-    # individual_ping_network(broadcast_ip, class_lic)
+    # if -p arg given on the command line
+    if args.pingall:
+        individual_ping_network(broadcast_ip, class_lic)
+
+    # if -n arg given on the command line
+    if args.nmapsubnet:
+        nmap_subnet(internet_ip)
 
     network_dict = arp_lookup()
     
@@ -158,29 +172,4 @@ def main():
 if __name__ == '__main__':
     main()
 
-# look inside proc/net/arp (the file that stores MAC addresses in the kernel arp = address resolution protocol)
-
-# extract HW/MAC address as strings
-
-# keep a dictionary of MAC addresses, check MAC addresses against extracted ones
-
-# ping MAC address to see if they are currently connected
-
-# arping works better (have to reply, more reliable)
-
 # if you want to do it remotely, you need to have a device on the network - i.e. a raspberry pi or something similar
-
-
-# ----------
-
-# ip = re.search('^broadcast:(.*)', ifconfig_response).groups()
-
-# print ip
-
-# hostname = "google.com" #example
-# my_ip = "10.0.255.255"
-# ip = os.system("ifconfig | grep broadcast")
-# response = os.system("arp -a")
-
-# print "got it"
-# print response
