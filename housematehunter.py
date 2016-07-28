@@ -1,6 +1,13 @@
 #!/usr/bin/env python
-# By Marielle Foster, July 2016
-# Inspiration from Paul Fenwick
+
+"""
+By Marielle Foster, July 2016
+Inspiration from Paul Fenwick
+
+If you want to use it remotely, you need to have a device on the network 
+- i.e. a raspberry pi or something similar
+"""
+
 
 import os
 import subprocess
@@ -10,8 +17,9 @@ from mac_add import mac_addresses
 from multiprocessing.dummy import Pool as ThreadPool
 import argparse
 
-'''cleans mac addresses by re-adding zeros'''
+
 def mac_clean(mac):
+    '''Cleans mac addresses by re-adding zeros.'''
     parts = mac.split(":")
     mac_final = ""
     for part in parts:
@@ -20,14 +28,16 @@ def mac_clean(mac):
         mac_final += part + ":"
     return mac_final[:-1]
 
-'''calls ifconfig and returns the text response'''
+
 def ifconfig_response():
+    '''Calls ifconfig and returns the text response.'''
     return subprocess.check_output(['ifconfig'], shell=True)
 
-''' finds the broadcast internet ip and sends out a single broadcast ping 
-    (currently silently). Because not a lot of machines respond to broadcast
-    pings, there are other slower ways that fewer devices ignore'''
+
 def broadcast_ping(ifconfig_res):
+    '''Finds the broadcast internet ip and sends out a single broadcast ping 
+    (currently silently). Because not a lot of machines respond to broadcast
+    pings, there are other slower ways that fewer devices ignore.'''
     #starting with a broadcast ping
     [broadcast_ip] = re.findall( r'broadcast [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
 
@@ -52,9 +62,10 @@ def broadcast_ping(ifconfig_res):
     # else:
     return (broadcast_ip, internet_ip)
 
-''' figure out which class license you're on: netmask inet 10.0.17.185 netmask 
-    0xffff0000 four f's means class B, two f's means class A, six f's class C'''
+
 def class_license(ifconfig_res):
+    '''Figure out which class license you're on: netmask inet 10.0.17.185 netmask
+    0xffff0000 four f's means class B, two f's means class A, six f's class C.'''
     internet = re.findall( r'netmask (.*) broadcast', ifconfig_res)
     if len(internet) == 1:
         if 'ffffff' in internet[0] or "255.255.255" in internet[0]: #or 255.255.255?
@@ -66,10 +77,11 @@ def class_license(ifconfig_res):
     print "Class License not extracted"
     return None
 
-'''find all ip's in your subnet (only works for class B and C because 
-    you don't want arp 8 million addresses), arping's them so then they'll 
-        be added to your arp table'''
+
 def individual_ping_network(broadcast_ip, class_lic):
+    '''Find all ip's in your subnet (only works for class B and C because 
+    you don't want arp 8 million addresses), arping's them so then they'll 
+    be added to your arp table.'''
     ip_parts = broadcast_ip.split(".")
     print ip_parts
     ip_list = []
@@ -90,13 +102,15 @@ def individual_ping_network(broadcast_ip, class_lic):
     pool.close()
     pool.join()
 
-''' Calls to the system a single ping directed at a specific ip address '''
+
 def ping_thread(ip):
+    '''Calls to the system a single ping directed at a specific ip address.'''
     ping = os.system("arping -c 1 " + ip)
 
-''' look up arp table, find all mac addresses, put them in a dictionary 
-    with the IP addresses as keys '''
+
 def arp_lookup():
+    '''Look up arp table, find all mac addresses, put them in a dictionary 
+    with the IP addresses as keys.'''
     arp_response = subprocess.check_output(['arp -an'], shell=True)
     network_machines = arp_response.split("\n")
 
@@ -114,9 +128,10 @@ def arp_lookup():
             network_dict[mac] = ip
     return network_dict
 
-''' looks up your known mac addresses and prints out who is home, their mac address
-    and their current ip address'''
+
 def friends_home(network_dict):
+    '''Looks up your known mac addresses and prints out who is home, their mac address
+    and their current ip address.'''
     #see who's home
     print "~~~~~~~~~Friends who are home~~~~~~~~~~~~"
     for friend in friends:
@@ -124,9 +139,10 @@ def friends_home(network_dict):
         if friend in network_dict:
             print friend +'\t'+ network_dict[friend] +'\t'+  friends[friend]
 
-''' prints the contents of your arp table and what maker/manufacturer is associated
-    with their mac address'''
+
 def device_types(network_dict):
+    '''Prints the contents of your arp table and what maker/manufacturer 
+    is associated with their mac address.'''
     print "~~~~~~~~~Device types on your network~~~~~~~~~~~~"
     for mac in network_dict:
         if mac[:8] in mac_addresses:
@@ -134,8 +150,10 @@ def device_types(network_dict):
         else:
             print "DON'T KNOW", mac
 
-'''nmaps whatever subnet (last octect) you're on so you find all devices on your net'''
+
 def nmap_subnet(internet_ip):
+    '''Nmaps whatever subnet (last octect) you're on 
+    so you find all devices on your net.'''
     internet_ip = internet_ip.split(".")
     broad_ip = internet_ip[0]+"."+internet_ip[1]+"."+internet_ip[2]+".*"
     os.system("nmap -F " + broad_ip)
@@ -171,5 +189,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# if you want to do it remotely, you need to have a device on the network - i.e. a raspberry pi or something similar
