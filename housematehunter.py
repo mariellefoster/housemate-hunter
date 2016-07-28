@@ -8,14 +8,14 @@ If you want to use it remotely, you need to have a device on the network
 - i.e. a raspberry pi or something similar
 """
 
-
 import os
 import subprocess
 import re
+import argparse
+from multiprocessing.dummy import Pool as ThreadPool
+
 from friends import friends
 from mac_add import mac_addresses
-from multiprocessing.dummy import Pool as ThreadPool
-import argparse
 
 
 def mac_clean(mac):
