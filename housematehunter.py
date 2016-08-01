@@ -26,7 +26,7 @@ def mac_clean(mac):
     for part in parts:
         if len(part) < 2:
             part = "0" + part
-        mac_final += part + ":"
+        mac_final += (part + ":")
     return mac_final[:-1]
 
 
@@ -42,15 +42,14 @@ def broadcast_ping(ifconfig_res):
     # starting with a broadcast ping
     broadcast_re = r'broadcast [0-9]+(?:\.[0-9]+){3}'
     internet_re = r'inet [0-9]+(?:\.[0-9]+){3}'
-    [broadcast_ip] = re.findall(broadcast_re, ifconfig_res)
+    broadcast_ip = re.findall(broadcast_re, ifconfig_res)
+    broadcast_ip = 
     internet_ip = re.findall(internet_re, ifconfig_res)
     if len(internet_ip) >= 2:
         internet_ip = internet_ip[1].split()[1]
     elif len(internet_ip) == 1:
         internet_ip = internet_ip[1].split()[1]
-
     broadcast_ip = broadcast_ip.split()[1]
-
     ## silent response, calls the ping with no terminal output because #annoying
     response = subprocess.check_output(["ping -c 1 " + broadcast_ip], shell=True)
     
@@ -61,7 +60,7 @@ def broadcast_ping(ifconfig_res):
     # if response != 0:
     #   print "Broadcast ping failed"
     # else:
-    return (broadcast_ip, internet_ip)
+    return broadcast_ip, internet_ip
 
 
 def determine_class_license(ifconfig_res):
