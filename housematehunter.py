@@ -4,9 +4,10 @@
 By Marielle Foster, July 2016
 Inspiration from Paul Fenwick
 
-If you want to use it remotely, you need to have a device on the network 
+If you want to use it remotely, you need to have a device on the network
 - i.e. a raspberry pi or something similar
 """
+
 
 import os
 import subprocess
@@ -35,10 +36,10 @@ def ifconfig_response():
 
 
 def broadcast_ping(ifconfig_res):
-    '''Finds the broadcast internet ip and sends out a single broadcast ping 
+    '''Finds the broadcast internet ip and sends out a single broadcast ping
     (currently silently). Because not a lot of machines respond to broadcast
     pings, there are other slower ways that fewer devices ignore.'''
-    #starting with a broadcast ping
+    # starting with a broadcast ping
     [broadcast_ip] = re.findall( r'broadcast [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
 
     internet_ip = re.findall( r'inet [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
@@ -130,9 +131,8 @@ def arp_lookup():
 
 
 def friends_home(network_dict):
-    '''Looks up your known mac addresses and prints out who is home, their mac address
-    and their current ip address.'''
-    #see who's home
+    '''Looks up your known mac addresses and prints out who is home, 
+    their mac address and their current ip address.'''
     print "~~~~~~~~~Friends who are home~~~~~~~~~~~~"
     for friend in friends:
         friend = mac_clean(friend)
@@ -157,7 +157,6 @@ def nmap_subnet(internet_ip):
     internet_ip = internet_ip.split(".")
     broad_ip = internet_ip[0]+"."+internet_ip[1]+"."+internet_ip[2]+".*"
     os.system("nmap -F " + broad_ip)
-    
 
 
 def main():
@@ -185,7 +184,6 @@ def main():
     friends_home(network_dict)
     device_types(network_dict)
 
-    ##Ideas
 
 if __name__ == '__main__':
     main()
