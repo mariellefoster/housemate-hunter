@@ -40,10 +40,10 @@ def broadcast_ping(ifconfig_res):
     (currently silently). Because not a lot of machines respond to broadcast
     pings, there are other slower ways that fewer devices ignore.'''
     # starting with a broadcast ping
-    [broadcast_ip] = re.findall(r'broadcast [0-9]+(?:\.[0-9]+){3}', 
-                                    ifconfig_res)
-    internet_ip = re.findall(r'inet [0-9]+(?:\.[0-9]+){3}',
-                                ifconfig_res)
+    broadcast_re = r'broadcast [0-9]+(?:\.[0-9]+){3}'
+    internet_re = r'inet [0-9]+(?:\.[0-9]+){3}'
+    [broadcast_ip] = re.findall(broadcast_re, ifconfig_res)
+    internet_ip = re.findall(internet_re, ifconfig_res)
     if len(internet_ip) >= 2:
         internet_ip = internet_ip[1].split()[1]
     elif len(internet_ip) == 1:
