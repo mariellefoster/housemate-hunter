@@ -30,7 +30,7 @@ def mac_clean(mac):
     return mac_final[:-1]
 
 
-def ifconfig_response():
+def ifconfig_query():
     '''Calls ifconfig and returns the text response.'''
     return subprocess.check_output(['ifconfig'], shell=True)
 
@@ -40,10 +40,10 @@ def broadcast_ping(ifconfig_res):
     (currently silently). Because not a lot of machines respond to broadcast
     pings, there are other slower ways that fewer devices ignore.'''
     # starting with a broadcast ping
-    [broadcast_ip] = re.findall( r'broadcast [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
-
-    internet_ip = re.findall( r'inet [0-9]+(?:\.[0-9]+){3}', ifconfig_res)
-    
+    [broadcast_ip] = re.findall(r'broadcast [0-9]+(?:\.[0-9]+){3}', 
+                                    ifconfig_res)
+    internet_ip = re.findall(r'inet [0-9]+(?:\.[0-9]+){3}',
+                                ifconfig_res)
     if len(internet_ip) >= 2:
         internet_ip = internet_ip[1].split()[1]
     elif len(internet_ip) == 1:
@@ -64,10 +64,10 @@ def broadcast_ping(ifconfig_res):
     return (broadcast_ip, internet_ip)
 
 
-def class_license(ifconfig_res):
+def determine_class_license(ifconfig_res):
     '''Figure out which class license you're on: netmask inet 10.0.17.185 netmask
     0xffff0000 four f's means class B, two f's means class A, six f's class C.'''
-    internet = re.findall( r'netmask (.*) broadcast', ifconfig_res)
+    internet = re.findall(r'netmask (.*) broadcast', ifconfig_res)
     if len(internet) == 1:
         if 'ffffff' in internet[0] or "255.255.255" in internet[0]: #or 255.255.255?
             return "C"
@@ -159,28 +159,28 @@ def nmap_subnet(internet_ip):
     os.system("nmap -F " + broad_ip)
 
 
+def arg_parser():
+    parser = argparse.ArgumentParser(description="""Looks over your subnet, 
+        informs you of the computers you have interacted with recently 
+        and/or those which have responded to the program's broadcast ping.""")
+    parser.add_argument('-p', '--pingall', action='store_true', 
+                            help="pings all devices on your subnet")
+    parser.add_argument('-n', '--nmapsubnet', action='store_true', 
+                            help="""nmaps all ip's with the same last octet 
+                            of your current ip address""")
+    return parser.parse_args()
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Looks over your subnet, informs you of the computers you have interacted with recently and/or those which have responded to the program's broadcast ping.")
-    parser.add_argument('-p', '--pingall', action='store_true', help="pings all devices on your subnet")
-    parser.add_argument('-n', '--nmapsubnet', action='store_true', help="nmaps all ip's with the same last octect of your current ip address")
-    args = parser.parse_args()
-
-    ifconfig_res = ifconfig_response()
-
-    class_lic = class_license(ifconfig_res)
-
-    (broadcast_ip, internet_ip) = broadcast_ping(ifconfig_res)
-
-    # if -p arg given on the command line
-    if args.pingall:
-        individual_ping_network(broadcast_ip, class_lic)
-
-    # if -n arg given on the command line
-    if args.nmapsubnet:
+    args = arg_parser()
+    ifconfig_response = ifconfig_query()
+    class_license = determine_class_license(ifconfig_response)
+    broadcast_ip, internet_ip = broadcast_ping(ifconfig_response)
+    if args.pingall:    # if -p arg given on the command line
+        individual_ping_network(broadcast_ip, class_license)
+    if args.nmapsubnet:     # if -n arg given on the command line
         nmap_subnet(internet_ip)
-
     network_dict = arp_lookup()
-    
     friends_home(network_dict)
     device_types(network_dict)
 
