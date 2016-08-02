@@ -32,7 +32,7 @@ def mac_clean(mac):
 
 def ifconfig_query():
     '''Calls ifconfig and returns the text response.'''
-    return subprocess.check_output(['ifconfig'], shell=True)
+    return subprocess.check_output(['ifconfig en0'], shell=True)
 
 
 def broadcast_ping(ifconfig_res):
@@ -43,13 +43,15 @@ def broadcast_ping(ifconfig_res):
     broadcast_re = r'broadcast [0-9]+(?:\.[0-9]+){3}'
     internet_re = r'inet [0-9]+(?:\.[0-9]+){3}'
     broadcast_ip = re.findall(broadcast_re, ifconfig_res)
-    broadcast_ip = 
+    broadcast_ip = broadcast_ip[0]
+
     internet_ip = re.findall(internet_re, ifconfig_res)
     if len(internet_ip) >= 2:
         internet_ip = internet_ip[1].split()[1]
     elif len(internet_ip) == 1:
-        internet_ip = internet_ip[1].split()[1]
+        internet_ip = internet_ip[0].split()[1]
     broadcast_ip = broadcast_ip.split()[1]
+    
     ## silent response, calls the ping with no terminal output because #annoying
     response = subprocess.check_output(["ping -c 1 " + broadcast_ip], shell=True)
     
