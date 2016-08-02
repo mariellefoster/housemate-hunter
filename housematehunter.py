@@ -32,7 +32,12 @@ def mac_clean(mac):
 
 def ifconfig_query():
     '''Calls ifconfig and returns the text response.'''
-    return subprocess.check_output(['ifconfig en0'], shell=True)
+    route = subprocess.check_output(['route get 0.0.0.0'], shell=True)
+    if "interface: en0" in route:
+        return subprocess.check_output(['ifconfig en0'], shell=True)
+    if "interface: en1" in route:
+        return subprocess.check_output(['ifconfig en1'], shell=True)
+    return "OH SNAP"
 
 
 def broadcast_ping(ifconfig_res):
@@ -51,7 +56,7 @@ def broadcast_ping(ifconfig_res):
     elif len(internet_ip) == 1:
         internet_ip = internet_ip[0].split()[1]
     broadcast_ip = broadcast_ip.split()[1]
-    
+
     ## silent response, calls the ping with no terminal output because #annoying
     response = subprocess.check_output(["ping -c 1 " + broadcast_ip], shell=True)
     
