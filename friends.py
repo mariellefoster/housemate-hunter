@@ -3,5 +3,5 @@
 # addresses being more accessible than they already are :)
 
 friends = {
-	"put your mac addresses here":"put who it belongsto here"
+	"put your mac addresses here":"put who it belongs to here"
 }

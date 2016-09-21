@@ -3,4 +3,6 @@ branches:
 language: python
 python: 2.7
 cache: pip
-script: ls
+script:
+    - pytest
+    - ls
