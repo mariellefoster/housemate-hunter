@@ -1,5 +1,6 @@
 # housemate-hunter
 [![Build Status](https://travis-ci.org/mariellefoster/housemate-hunter.svg?branch=master)](https://travis-ci.org/mariellefoster/housemate-hunter)
+
 identifies and tracks known mac addresses on your subnet
 
 
