@@ -15,3 +15,6 @@ optional arguments:
 
   -n, --nmapsubnet  nmaps all ip's with the same last octect of your current
                     ip address
+
+
+Soon to be implemented on a raspberry pi and hooked up to a localhost webpage
