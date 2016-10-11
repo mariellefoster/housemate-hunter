@@ -101,9 +101,6 @@ def individual_ping_network(broadcast_ip, class_lic):
                 ip = ip_parts[0]+"."+ip_parts[1]+"."+str(i)+"."+str(j)
                 ip_list.append(ip)
     
-    # for i in ip_list:
-    #   ping_thread(i)
-    
     pool = ThreadPool(40)
     pool.map(ping_thread, ip_list)
     pool.close()
