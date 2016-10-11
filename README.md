@@ -4,12 +4,12 @@
 identifies and tracks known mac addresses on your subnet
 
 
-usage: housemate_hunter.py [-h] [-p] [-n]
+## usage: housemate_hunter.py [-h] [-p] [-n]
 
 Looks over your subnet, informs you of the computers you have interacted with
 recently and/or those which have responded to the program's broadcast ping.
 
-optional arguments:
+### optional arguments:
 
   -h, --help        show this help message and exit
 
@@ -18,5 +18,6 @@ optional arguments:
   -n, --nmapsubnet  nmaps all ip's with the same last octect of your current
                     ip address
 
-
-Soon to be implemented on a raspberry pi and hooked up to a localhost webpage
+## Future Ideas
+- Soon to be implemented on a raspberry pi and hooked up to a localhost webpage
+- Gather output from phones about what hosts they've been connecting to?
