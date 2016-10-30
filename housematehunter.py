@@ -14,6 +14,7 @@ import subprocess
 import re
 import argparse
 from multiprocessing.dummy import Pool as ThreadPool
+from __future__ import print_function
 
 from friends import friends
 from mac_add import mac_addresses
@@ -62,10 +63,10 @@ def broadcast_ping(ifconfig_res):
     
     ## Binary response, prints to the terminal, if it's failing you can enable it
     # response = os.system("ping -c 1 " + broadcast_ip)
-    # print response == response1
+    # print(response == response1)
 
     # if response != 0:
-    #   print "Broadcast ping failed"
+    #   print("Broadcast ping failed")
     # else:
     return broadcast_ip, internet_ip
 
@@ -81,7 +82,7 @@ def determine_class_license(ifconfig_res):
             return "B"
         elif 'ff' or "255." in internet[0]:
             return "A"
-    print "Class License not extracted"
+    print("Class License not extracted")
     return None
 
 
@@ -90,7 +91,7 @@ def individual_ping_network(broadcast_ip, class_lic):
     you don't want arp 8 million addresses), arping's them so then they'll 
     be added to your arp table.'''
     ip_parts = broadcast_ip.split(".")
-    print ip_parts
+    print(ip_parts)
     ip_list = []
     for i in xrange(0,255):
         if class_lic == "C":
@@ -136,22 +137,22 @@ def arp_lookup():
 def friends_home(network_dict):
     '''Looks up your known mac addresses and prints out who is home, 
     their mac address and their current ip address.'''
-    print "~~~~~~~~~Friends who are home~~~~~~~~~~~~"
+    print("~~~~~~~~~Friends who are home~~~~~~~~~~~~")
     for friend in friends:
         friend = mac_clean(friend)
         if friend in network_dict:
-            print friend +'\t'+ network_dict[friend] +'\t'+  friends[friend]
+            print(friend +'\t'+ network_dict[friend] +'\t'+  friends[friend])
 
 
 def device_types(network_dict):
     '''Prints the contents of your arp table and what maker/manufacturer 
     is associated with their mac address.'''
-    print "~~~~~~~~~Device types on your network~~~~~~~~~~~~"
+    print("~~~~~~~~~Device types on your network~~~~~~~~~~~~")
     for mac in network_dict:
         if mac[:8] in mac_addresses:
-            print mac +'\t'+ network_dict[mac] +'\t'+ mac_addresses[mac[:8]]
+            print(mac +'\t'+ network_dict[mac] +'\t'+ mac_addresses[mac[:8]])
         else:
-            print "DON'T KNOW", mac
+            print("DON'T KNOW", mac)
 
 
 def nmap_subnet(internet_ip):
