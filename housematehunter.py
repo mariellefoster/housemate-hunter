@@ -156,7 +156,7 @@ def device_types(network_dict):
 
 
 def nmap_subnet(internet_ip):
-    '''Nmaps whatever subnet (last octect) you're on 
+    '''Nmaps whatever subnet (last octet) you're on 
     so you find all devices on your net.'''
     internet_ip = internet_ip.split(".")
     broad_ip = internet_ip[0]+"."+internet_ip[1]+"."+internet_ip[2]+".*"
