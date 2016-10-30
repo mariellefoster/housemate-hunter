@@ -87,7 +87,8 @@ def determine_class_license(ifconfig_res):
 def individual_ping_network(broadcast_ip, class_lic):
     '''Find all ip's in your subnet (only works for class B and C because 
     you don't want arp 8 million addresses), arping's them so then they'll 
-    be added to your arp table.'''
+    be added to your arp table.
+    Note: you must brew install arping for this to work'''
     ip_parts = broadcast_ip.split(".")
     print(ip_parts)
     ip_list = []
@@ -107,15 +108,15 @@ def individual_ping_network(broadcast_ip, class_lic):
 
 
 def ping_thread(ip):
-    '''Calls to the system a single ping directed at a specific ip address.
-    Note: you must brew install arping for this to work'''
-    ping = subprocess.call("arping -c 1 " + ip, shell=True)
+    '''Calls to the system a single ping directed at a specific ip address.'''
+    ping = subprocess.check_output("arping -c 1 " + ip, shell=True)
 
 
 def arp_lookup():
     '''Look up arp table, find all mac addresses, put them in a dictionary 
     with the IP addresses as keys.'''
     arp_response = subprocess.check_output(['arp -an'], shell=True)
+    arp_response = arp_response.decode()
     network_machines = arp_response.split("\n")
 
     network_dict = {}
