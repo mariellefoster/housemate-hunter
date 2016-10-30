@@ -93,12 +93,12 @@ def individual_ping_network(broadcast_ip, class_lic):
     ip_parts = broadcast_ip.split(".")
     print(ip_parts)
     ip_list = []
-    for i in xrange(0,255):
+    for i in range(0, 255):
         if class_lic == "C":
             ip = ip_parts[0]+"."+ip_parts[1]+"."+ip_parts[2]+"."+str(i)
             ip_list.append(ip)
         elif class_lic == "B":
-            for j in xrange(0,255):
+            for j in range(0, 255):
                 ip = ip_parts[0]+"."+ip_parts[1]+"."+str(i)+"."+str(j)
                 ip_list.append(ip)
     
