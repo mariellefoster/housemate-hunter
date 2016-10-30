@@ -9,7 +9,6 @@ If you want to use it remotely, you need to have a device on the network
 """
 
 
-import os
 import subprocess
 import re
 import argparse
@@ -34,6 +33,7 @@ def mac_clean(mac):
 def ifconfig_query():
     '''Calls ifconfig and returns the text response.'''
     route = subprocess.check_output(['route get 0.0.0.0'], shell=True)
+    route = route.decode()
     if "interface: en0" in route:
         return subprocess.check_output(['ifconfig en0'], shell=True)
     if "interface: en1" in route:
@@ -62,9 +62,7 @@ def broadcast_ping(ifconfig_res):
     response = subprocess.check_output(["ping -c 1 " + broadcast_ip], shell=True)
     
     ## Binary response, prints to the terminal, if it's failing you can enable it
-    # response = os.system("ping -c 1 " + broadcast_ip)
-    # print(response == response1)
-
+    # response = subprocess.call("ping -c 1 " + broadcast_ip, shell=True)
     # if response != 0:
     #   print("Broadcast ping failed")
     # else:
@@ -109,8 +107,9 @@ def individual_ping_network(broadcast_ip, class_lic):
 
 
 def ping_thread(ip):
-    '''Calls to the system a single ping directed at a specific ip address.'''
-    ping = os.system("arping -c 1 " + ip)
+    '''Calls to the system a single ping directed at a specific ip address.
+    Note: you must brew install arping for this to work'''
+    ping = subprocess.call("arping -c 1 " + ip, shell=True)
 
 
 def arp_lookup():
@@ -160,7 +159,7 @@ def nmap_subnet(internet_ip):
     so you find all devices on your net.'''
     internet_ip = internet_ip.split(".")
     broad_ip = internet_ip[0]+"."+internet_ip[1]+"."+internet_ip[2]+".*"
-    os.system("nmap -F " + broad_ip)
+    subprocess.call("nmap -F " + broad_ip, shell=True)
 
 
 def arg_parser():
