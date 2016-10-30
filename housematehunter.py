@@ -8,12 +8,12 @@ If you want to use it remotely, you need to have a device on the network
 - i.e. a raspberry pi or something similar
 """
 
+from __future__ import print_function
 
 import subprocess
 import re
 import argparse
 from multiprocessing.dummy import Pool as ThreadPool
-from __future__ import print_function
 
 from friends import friends
 from mac_add import mac_addresses
@@ -177,6 +177,7 @@ def arg_parser():
 def main():
     args = arg_parser()
     ifconfig_response = ifconfig_query()
+    ifconfig_response = ifconfig_response.decode()
     class_license = determine_class_license(ifconfig_response)
     broadcast_ip, internet_ip = broadcast_ping(ifconfig_response)
     if args.pingall:    # if -p arg given on the command line
