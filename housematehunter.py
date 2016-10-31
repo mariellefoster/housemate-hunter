@@ -110,7 +110,7 @@ def individual_ping_network(broadcast_ip, class_lic):
 def ping_thread(ip):
     '''Calls to the system a single ping directed at a specific ip address.
     Swallows CalledProcessError because that means ip probably isn't present'''
-    try: 
+    try:
         ping = subprocess.check_output("arping -c 1 " + ip, shell=True)
     except subprocess.CalledProcessError:
         pass
@@ -119,7 +119,7 @@ def ping_thread(ip):
 def arp_lookup():
     '''Look up arp table, find all mac addresses, put them in a dictionary 
     with the IP addresses as keys.'''
-    arp_response = subprocess.check_output(['arp -an'], shell=True)
+    arp_response = subprocess.check_output('arp -an', shell=True)
     arp_response = arp_response.decode()
     network_machines = arp_response.split("\n")
 
