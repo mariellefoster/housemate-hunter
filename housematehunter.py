@@ -8,8 +8,8 @@ If you want to use it remotely, you need to have a device on the network
 - i.e. a raspberry pi or something similar
 """
 
+from __future__ import print_function
 
-import os
 import subprocess
 import re
 import argparse
@@ -33,6 +33,7 @@ def mac_clean(mac):
 def ifconfig_query():
     '''Calls ifconfig and returns the text response.'''
     route = subprocess.check_output(['route get 0.0.0.0'], shell=True)
+    route = route.decode()
     if "interface: en0" in route:
         return subprocess.check_output(['ifconfig en0'], shell=True)
     if "interface: en1" in route:
@@ -61,11 +62,9 @@ def broadcast_ping(ifconfig_res):
     response = subprocess.check_output(["ping -c 1 " + broadcast_ip], shell=True)
     
     ## Binary response, prints to the terminal, if it's failing you can enable it
-    # response = os.system("ping -c 1 " + broadcast_ip)
-    # print response == response1
-
+    # response = subprocess.call("ping -c 1 " + broadcast_ip, shell=True)
     # if response != 0:
-    #   print "Broadcast ping failed"
+    #   print("Broadcast ping failed")
     # else:
     return broadcast_ip, internet_ip
 
@@ -81,23 +80,24 @@ def determine_class_license(ifconfig_res):
             return "B"
         elif 'ff' or "255." in internet[0]:
             return "A"
-    print "Class License not extracted"
+    print("Class License not extracted")
     return None
 
 
 def individual_ping_network(broadcast_ip, class_lic):
     '''Find all ip's in your subnet (only works for class B and C because 
     you don't want arp 8 million addresses), arping's them so then they'll 
-    be added to your arp table.'''
+    be added to your arp table.
+    Note: you must brew install arping for this to work'''
     ip_parts = broadcast_ip.split(".")
-    print ip_parts
+    print(ip_parts)
     ip_list = []
-    for i in xrange(0,255):
+    for i in range(0, 255):
         if class_lic == "C":
             ip = ip_parts[0]+"."+ip_parts[1]+"."+ip_parts[2]+"."+str(i)
             ip_list.append(ip)
         elif class_lic == "B":
-            for j in xrange(0,255):
+            for j in range(0, 255):
                 ip = ip_parts[0]+"."+ip_parts[1]+"."+str(i)+"."+str(j)
                 ip_list.append(ip)
     
@@ -108,14 +108,19 @@ def individual_ping_network(broadcast_ip, class_lic):
 
 
 def ping_thread(ip):
-    '''Calls to the system a single ping directed at a specific ip address.'''
-    ping = os.system("arping -c 1 " + ip)
+    '''Calls to the system a single ping directed at a specific ip address.
+    Swallows CalledProcessError because that means ip probably isn't present'''
+    try:
+        ping = subprocess.check_output("arping -c 1 " + ip, shell=True)
+    except subprocess.CalledProcessError:
+        pass
 
 
 def arp_lookup():
     '''Look up arp table, find all mac addresses, put them in a dictionary 
     with the IP addresses as keys.'''
-    arp_response = subprocess.check_output(['arp -an'], shell=True)
+    arp_response = subprocess.check_output('arp -an', shell=True)
+    arp_response = arp_response.decode()
     network_machines = arp_response.split("\n")
 
     network_dict = {}
@@ -136,30 +141,30 @@ def arp_lookup():
 def friends_home(network_dict):
     '''Looks up your known mac addresses and prints out who is home, 
     their mac address and their current ip address.'''
-    print "~~~~~~~~~Friends who are home~~~~~~~~~~~~"
+    print("~~~~~~~~~Friends who are home~~~~~~~~~~~~")
     for friend in friends:
         friend = mac_clean(friend)
         if friend in network_dict:
-            print friend +'\t'+ network_dict[friend] +'\t'+  friends[friend]
+            print(friend +'\t'+ network_dict[friend] +'\t'+  friends[friend])
 
 
 def device_types(network_dict):
     '''Prints the contents of your arp table and what maker/manufacturer 
     is associated with their mac address.'''
-    print "~~~~~~~~~Device types on your network~~~~~~~~~~~~"
+    print("~~~~~~~~~Device types on your network~~~~~~~~~~~~")
     for mac in network_dict:
         if mac[:8] in mac_addresses:
-            print mac +'\t'+ network_dict[mac] +'\t'+ mac_addresses[mac[:8]]
+            print(mac +'\t'+ network_dict[mac] +'\t'+ mac_addresses[mac[:8]])
         else:
-            print "DON'T KNOW", mac
+            print("DON'T KNOW", mac)
 
 
 def nmap_subnet(internet_ip):
-    '''Nmaps whatever subnet (last octect) you're on 
+    '''Nmaps whatever subnet (last octet) you're on 
     so you find all devices on your net.'''
     internet_ip = internet_ip.split(".")
     broad_ip = internet_ip[0]+"."+internet_ip[1]+"."+internet_ip[2]+".*"
-    os.system("nmap -F " + broad_ip)
+    subprocess.call("nmap -F " + broad_ip, shell=True)
 
 
 def arg_parser():
@@ -177,6 +182,7 @@ def arg_parser():
 def main():
     args = arg_parser()
     ifconfig_response = ifconfig_query()
+    ifconfig_response = ifconfig_response.decode()
     class_license = determine_class_license(ifconfig_response)
     broadcast_ip, internet_ip = broadcast_ping(ifconfig_response)
     if args.pingall:    # if -p arg given on the command line
