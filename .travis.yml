@@ -1,8 +1,9 @@
 branches:
   only: master
 language: python
-python: 2.7
-cache: pip
+python: 
+  - 2.7
+  - 3.5
 script:
-    - python -m pytest
-    - ls
+  - python -m pytest
+  
